@@ -2,7 +2,7 @@
 ---
 model_type: PINHOLE
 camera_name: camera
-image_width: 848
+image_width: 640
 image_height: 480
 distortion_parameters:
    k1: 0.0
@@ -10,7 +10,7 @@ distortion_parameters:
    p1: 0.0
    p2: 0.0
 projection_parameters:
-   fx: 431.6051330566406
-   fy: 431.6051330566406
-   cx: 427.9306945800781
-   cy: 232.52188110351562
+   fx: 386.0 # Example values for D435i
+   fy: 386.0
+   cx: 320.0
+   cy: 240.0
