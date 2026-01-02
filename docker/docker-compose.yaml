@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  vins_fusion:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: vins-fusion-ros2:humble
+    container_name: vins_fusion_ros2
+    network_mode: "host" # Use host networking for simplicity with ROS2, or use bridge and expose ports
+    # If network_mode: host is used, ports are ignored, but good to document.
+    # ports:
+    #   - "9090:9090" # Rosbridge
+    volumes:
+      - ../:/root/colcon_ws/src/VINS-Fusion-ROS2
+      - /dev/shm:/dev/shm
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    stdin_open: true # docker run -i
+    tty: true # docker run -t
+    command: bash -c "ros2 launch rosbridge_server rosbridge_websocket_launch.xml & bash"

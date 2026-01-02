@@ -11,6 +11,7 @@
 
 // using namespace ros;
 using namespace Eigen;
+std::shared_ptr<tf2_ros::TransformBroadcaster> broadcaster;
 rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odometry, pub_latest_odometry;
 rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_path;
 rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pub_point_cloud, pub_margin_cloud;
@@ -45,6 +46,8 @@ void registerPub(rclcpp::Node::SharedPtr n)
     pub_keyframe_point = n->create_publisher<sensor_msgs::msg::PointCloud>("keyframe_point", 1000);
     pub_extrinsic = n->create_publisher<nav_msgs::msg::Odometry>("extrinsic", 1000);
     pub_image_track = n->create_publisher<sensor_msgs::msg::Image>("image_track", 1000);
+
+    broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(n);
 
     cameraposevisual.setScale(0.1);
     cameraposevisual.setLineWidth(0.01);
@@ -309,14 +312,9 @@ void pubPointCloud(const Estimator &estimator, const std_msgs::msg::Header &head
 
 void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
 {
-    return; // tmp.
-
-
-    cout << "tf 1" << endl;
     if( estimator.solver_flag != Estimator::SolverFlag::NON_LINEAR)
         return;
 
-    std::shared_ptr<tf2_ros::TransformBroadcaster> br;
     geometry_msgs::msg::TransformStamped transform, transform_cam;
 
     tf2::Quaternion q;
@@ -324,16 +322,8 @@ void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
     Vector3d correct_t;
     Quaterniond correct_q;
     
-    cout << "tf 2" << endl;
     correct_t = estimator.Ps[WINDOW_SIZE];
     correct_q = estimator.Rs[WINDOW_SIZE];
-
-    cout << "tf 3" << endl;
-
-    
-    cout << header.stamp.sec + header.stamp.nanosec * (1e-9) << endl;
-    cout << correct_t << endl;
-    cout << correct_q.w() << " " << correct_q.x() << " " << correct_q.y() << " " << correct_q.z() << endl;
 
 
     // transform.header.stamp = header.stamp;
@@ -344,7 +334,8 @@ void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
     transform.transform.translation.y = correct_t(1);
     transform.transform.translation.z = correct_t(2);
 
-    cout << "tf 4" << endl;
+    transform.transform.translation.y = correct_t(1);
+    transform.transform.translation.z = correct_t(2);
 
 
     q.setW(correct_q.w());
@@ -356,12 +347,12 @@ void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
     transform.transform.rotation.z = q.z();
     transform.transform.rotation.w = q.w();
 
-    cout << "tf 5" << endl;
+    // cout << "tf 5" << endl;
 
-    br->sendTransform(transform);
+    broadcaster->sendTransform(transform);
 
 
-    cout << "tf 6" << endl;
+    broadcaster->sendTransform(transform);
 
 
 
@@ -387,7 +378,10 @@ void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
 
     // br->sendTransform(transform_cam);
 
-    cout << "tf 7" << endl;
+    transform_cam.transform.rotation.z = q.z();
+    transform_cam.transform.rotation.w = q.w();
+
+    // br->sendTransform(transform_cam);
 
     
     nav_msgs::msg::Odometry odometry;
@@ -402,9 +396,9 @@ void pubTF(const Estimator &estimator, const std_msgs::msg::Header &header)
     odometry.pose.pose.orientation.z = tmp_q.z();
     odometry.pose.pose.orientation.w = tmp_q.w();
 
-    cout << "tf 8" << endl;
+    odometry.pose.pose.orientation.w = tmp_q.w();
+
     pub_extrinsic->publish(odometry);
-    cout << "tf 9" << endl;
 
 }
 

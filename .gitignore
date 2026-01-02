@@ -1,0 +1,5 @@
+# Large files to ignore
+*.bag
+*.db3
+**/*.bin
+MH_01_easy_ros2/
